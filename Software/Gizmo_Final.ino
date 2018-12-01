@@ -6,9 +6,9 @@
   but when you approach it, it gets shy, stopes moving, and slowly turns off.
 
   This code controls a 5-level rotating tower/lamp.
-  // Levels 1 and 5 rotate the fastest @ 6 rotations/ 15 motor rotations
-  // Levels 2 and 4 rotate at 1/3 of the speed of levels 1 & 5, @ 3 rotations/ 15 motor rotations
-  // Level 3 is the slowest and rotates at 1/2 of the speed of levels 1 & 5 @ 2 rotations/ 15 motor rotations
+  // Levels 1 and 5 rotate the fastest @ 6 rotations/ 13.5 motor rotations
+  // Levels 2 and 4 rotate at 1/2 of the speed of levels 1 & 5, @ 3 rotations/ 13.5 motor rotations
+  // Level 3 is the slowest and rotates at 1/3 of the speed of levels 1 & 5 @ 2 rotations/ 13.5 motor rotations
 
   When a person is more than 90cm away, Shylamp will happily do its thing.
   But when you cross the threshold, it starts to hide. 
@@ -61,6 +61,11 @@ int distance; // How far, in cm, the object the component sensed is
  tower levels on and off. */
  
 int lastNineReadings [9] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 }; 
+
+/* We also keep a count of how many proximity readings there have been to put each new proximity reading in the correct
+ position in the array using the modulo oeprator, "%"
+ */
+ 
 int proximityReadingsCount = 0;
 
 // The max distance at which the tower is both lit up and moving, 90 cm, 
@@ -81,24 +86,23 @@ const int STEPS_PER_REVOLUTION = 200;
 
 // How many motor rotations it takes to align the tower into its original position?
 
-// Based on the fact that the fastest tower level rotates at 6/15 motor rotations
-// The medium tower level at 1/3 of the speed
-// The bottom tower level at 1/2 of the speed
+// Based on the fact that the fastest tower level rotates at 6/13.5 motor rotations
+// The medium tower level at 1/2 of the speed
+// The bottom tower level at 1/3 of the speed
 
 // Since each level is a square, that means that it each has 4 times the opportunity for perfect alignment, due to its 4 sides
 
 // This means that for every 1.5 rotations of the fastest level, 
-// the middle one will do 1 rotation,
+// the middle one will do 0.75 rotation,
 // and the slowest 0.5
 
 // So, they will all align at 1.5 rotations of the fastest level.
-// Since the fastest level is operating at a speed of 6/15 motor rotations, that means that X is our alignment_revolutions number 
+// Since the fastest level is operating at a speed of 6/13.5 motor rotations, that means that X is our alignment_revolutions number 
 
-// 6/1.5 = 15/x
-// x = 1.5*15/6
-// x = 3.75
+// x = 13.5/6
+// x = 2.25
 
-const float ALIGNMENT_REVOLUTIONS = 3.75; 
+const float ALIGNMENT_REVOLUTIONS = 2.25; 
 
 // initialize the stepper library on pins 5 through 7:
 Stepper myStepper(STEPS_PER_REVOLUTION, 4, 5, 6, 7);
@@ -121,7 +125,6 @@ void setup() {
 
   pinMode(TRIG_PIN, OUTPUT);
   pinMode(ECHO_PIN, INPUT);
-  Serial.begin(9600);
   pixels.begin(); // This initializes the NeoPixel library.
 }
 
@@ -156,7 +159,7 @@ int medianDistance() {
   // qsort - last parameter is a function pointer to the sort function
   qsort(lastNineReadings, lastNineReadings_length, sizeof(lastNineReadings[0]), sort_desc);
 
-  return lastNineReadings[5];
+  return lastNineReadings[4];
 }
 
 // Returns the number of revolutions the stepper motor has taken so far
@@ -168,7 +171,7 @@ float currentRevolutions(int steps) {
 void storeDistanceReading(int distance) {
   
   // Replace reading position with current distance reading
-  int mod = proximityReadingsCount%10;  
+  int mod = proximityReadingsCount%9;  
   lastNineReadings[mod] = distance;
 }
 
@@ -197,9 +200,8 @@ void handleMotorUpdate() {
     myStepper.setSpeed(90); // Speed up the motor, to align the tower quicker
 
     float revolutions = currentRevolutions(stepCount);
-    Serial.println(revolutions);
 
-    // If the motor has done 3.75 revolutions, the tower ~should~ be aligned
+    // If the motor has done ALIGNMENT_REVOLUTIONS revolutions, the tower ~should~ be aligned
     // This will only work if the stepper steps have actually physically happened
     // Since there's no way of actually telling that the stepper has physically moved, this is theoretical
     if (fmod(revolutions, float(ALIGNMENT_REVOLUTIONS)) != 0) {
