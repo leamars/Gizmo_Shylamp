@@ -1,7 +1,11 @@
 # Gizmo: Shylamp
 Shylamp is a lamp that is shy. When you leave it alone it's animated, moves about and stays lit up (like a proper lamp),  but when you approach it, it gets shy, stopes moving, and slowly turns off each of its 5 levels.
 
-This code controls a 5-level rotating tower/lamp.
+![Inspiration](Images/FinalPoster.001.jpeg)
+![Gear System](Images/FinalPoster.002.jpeg)
+![Interaction](Images/FinalPoster.003.jpeg)
+
+The code inside Software/Gizmo_Final.ino controls a 5-level rotating tower/lamp.
 
 * Levels 1 and 5 rotate the fastest @ 6 rotations/ 15 motor rotations
 * Levels 2 and 4 rotate at 1/3 of the speed of levels 1 & 5, @ 3 rotations/ 15 motor rotations
